@@ -1,8 +1,5 @@
-<%@page import="java.sql.Connection"%>
-<%@page import="java.sql.DriverManager"%>
-<%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.Statement"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
   <head>
@@ -11,29 +8,12 @@
     <link rel="stylesheet" type="text/css" href="estilos.css" />
   </head>
   <body>
-    <%
-      // Por defecto sólo se muestran las próximas citas (fecha >= hoy).
-      // Con ?todas=1 se muestra el histórico completo.
-      boolean todas = "1".equals(request.getParameter("todas"));
+    <h1>${todas ? "Todas las citas" : "Próximas citas"}</h1>
+    
+    <c:if test="${not empty error}">
+      <p class="error">Error: ${error}</p>
+    </c:if>
 
-      Class.forName("com.mysql.cj.jdbc.Driver");
-      String url = "jdbc:mysql://localhost:3306/dentista?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8";
-
-      String sql = "SELECT c.id_cita, c.fecha, c.hora, c.motivo, "
-                 + "p.id_paciente, p.nombre, p.apellidos, "
-                 + "o.nombre AS odontologo "
-                 + "FROM cita c "
-                 + "JOIN paciente p ON p.id_paciente = c.id_paciente "
-                 + "JOIN odontologos o ON o.id_odontologo = c.id_odontologo "
-                 + (todas ? "" : "WHERE c.fecha >= CURDATE() ")
-                 + "ORDER BY c.fecha, c.hora";
-    %>
-    <h1><%= todas ? "Todas las citas" : "Próximas citas" %></h1>
-    <%
-      try (Connection conexion = DriverManager.getConnection(url, "user", "user");
-           Statement s = conexion.createStatement();
-           ResultSet listado = s.executeQuery(sql)) {
-    %>
     <table>
       <tr>
         <th>Id cita</th>
@@ -44,46 +24,33 @@
         <th>Odontólogo</th>
         <th>Acciones</th>
       </tr>
-      <%
-        while (listado.next()) {
-          String idCita = listado.getString("id_cita");
-          String hora = listado.getString("hora");
-          if (hora != null && hora.length() > 5) {
-            hora = hora.substring(0, 5);
-          }
-      %>
-      <tr>
-        <td><%= idCita %></td>
-        <td><%= listado.getString("fecha") %></td>
-        <td><%= hora %></td>
-        <td><%= listado.getString("apellidos") + ", " + listado.getString("nombre") %></td>
-        <td><%= listado.getString("motivo") %></td>
-        <td><%= listado.getString("odontologo") %></td>
-        <td>
-          <form method="post" action="borraCita.jsp">
-            <input type="hidden" name="id_cita" value="<%= idCita %>"/>
-            <input type="submit" value="anular">
-          </form>
-        </td>
-      </tr>
-      <%
-        }
-    %>
+      <c:forEach var="c" items="${citas}">
+        <tr>
+          <td>${c.idCita}</td>
+          <td>${c.fecha}</td>
+          <td>${c.hora}</td>
+          <td>${c.apellidosPaciente}, ${c.nombrePaciente}</td>
+          <td>${c.motivo}</td>
+          <td>${c.nombreOdontologo}</td>
+          <td>
+            <form method="post" action="citas?accion=borrar">
+              <input type="hidden" name="id_cita" value="${c.idCita}"/>
+              <input type="submit" value="anular" onclick="return confirm('¿Estás seguro de anular esta cita?');"/>
+            </form>
+          </td>
+        </tr>
+      </c:forEach>
     </table>
-    <%
-    } catch (Exception e) {
-    %>
-    <p class="error">Error al obtener el listado de citas: <%= e.getMessage() %></p>
-    <%
-    }
-    %>
     <p>
-      <% if (!todas) { %>
-        <a href="listadoCitas.jsp?todas=1">Ver el histórico completo</a> |
-      <% } else { %>
-        <a href="listadoCitas.jsp">Ver sólo las próximas citas</a> |
-      <% } %>
-      <a href="formularioCita.jsp">Nueva cita</a> |
+      <c:choose>
+        <c:when test="${not todas}">
+          <a href="citas?accion=listar&todas=1">Ver el histórico completo</a> |
+        </c:when>
+        <c:otherwise>
+          <a href="citas?accion=listar">Ver sólo las próximas citas</a> |
+        </c:otherwise>
+      </c:choose>
+      <a href="citas?accion=formulario">Nueva cita</a> |
       <a href="index.jsp">Volver al inicio</a>
     </p>
   </body>

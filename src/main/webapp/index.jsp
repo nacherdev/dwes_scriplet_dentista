@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html>
   <head>
@@ -10,10 +10,10 @@
     <h1>Bienvenido a la aplicación de gestión de citas de la clínica dental</h1>
     <p>Seleccione una opción:</p>
     <ul>
-      <li><a href="listadoPacientes.jsp">Ver listado de pacientes</a></li>
-      <li><a href="listadoCitas.jsp">Ver próximas citas</a></li>
-      <li><a href="formularioCita.jsp">Nueva cita</a></li>
-      <li><a href="formularioPaciente.jsp">Nuevo paciente</a></li>
+      <li><a href="pacientes?accion=listar">Ver listado de pacientes</a></li>
+      <li><a href="citas?accion=listar">Ver próximas citas</a></li>
+      <li><a href="citas?accion=formulario">Nueva cita</a></li>
+      <li><a href="pacientes?accion=formulario">Nuevo paciente</a></li>
     </ul>
   </body>
 </html>

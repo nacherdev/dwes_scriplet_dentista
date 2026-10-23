@@ -1,4 +1,4 @@
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html>
   <head>
@@ -8,7 +8,7 @@
   </head>
   <body>
     <h2>Introduzca los datos del nuevo paciente:</h2>
-    <form method="post" action="grabaPaciente.jsp">
+    <form method="post" action="pacientes?accion=insertar">
       Nombre <input type="text" name="nombre" required/><br/>
       Apellidos <input type="text" name="apellidos" required/><br/>
       DNI <input type="text" name="dni" maxlength="9" required/><br/>

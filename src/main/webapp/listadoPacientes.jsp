@@ -1,8 +1,5 @@
-<%@page import="java.sql.Connection"%>
-<%@page import="java.sql.DriverManager"%>
-<%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.Statement"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
   <head>
@@ -12,19 +9,11 @@
   </head>
   <body>
     <h1>Listado de pacientes</h1>
-    <%
-      Class.forName("com.mysql.cj.jdbc.Driver");
-      String url = "jdbc:mysql://localhost:3306/dentista?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8";
+    
+    <c:if test="${not empty error}">
+      <p class="error">Error: ${error}</p>
+    </c:if>
 
-      String sql = "SELECT p.id_paciente, p.nombre, p.apellidos, p.dni, p.fecha_nacimiento, "
-                 + "p.telefono, p.email, p.direccion, p.alergias, "
-                 + "(SELECT COUNT(*) FROM cita c WHERE c.id_paciente = p.id_paciente) AS num_citas "
-                 + "FROM paciente p ORDER BY p.apellidos, p.nombre";
-
-      try (Connection conexion = DriverManager.getConnection(url, "user", "user");
-           Statement s = conexion.createStatement();
-           ResultSet listado = s.executeQuery(sql)) {
-    %>
     <table>
       <tr>
         <th>Id</th>
@@ -39,45 +28,28 @@
         <th>Citas</th>
         <th>Acciones</th>
       </tr>
-      <%
-        while (listado.next()) {
-          String id = listado.getString("id_paciente");
-          String fechaNacimiento = listado.getString("fecha_nacimiento");
-          String alergias = listado.getString("alergias");
-          if (alergias == null) {
-            alergias = "";
-          }
-      %>
-      <tr>
-        <td><%= id %></td>
-        <td><%= listado.getString("nombre") %></td>
-        <td><%= listado.getString("apellidos") %></td>
-        <td><%= listado.getString("dni") %></td>
-        <td><%= (fechaNacimiento == null ? "" : fechaNacimiento) %></td>
-        <td><%= listado.getString("telefono") %></td>
-        <td><%= listado.getString("email") %></td>
-        <td><%= listado.getString("direccion") %></td>
-        <td><%= alergias %></td>
-        <td><%= listado.getString("num_citas") %></td>
-        <td>
-          <a href="formularioCita.jsp?paciente=<%= id %>">Nueva cita</a>
-          <form method="post" action="borraPaciente.jsp">
-            <input type="hidden" name="id_paciente" value="<%= id %>"/>
-            <input type="submit" value="borrar">
-          </form>
-        </td>
-      </tr>
-      <%
-        }
-    %>
+      <c:forEach var="p" items="${pacientes}">
+        <tr>
+          <td>${p.idPaciente}</td>
+          <td>${p.nombre}</td>
+          <td>${p.apellidos}</td>
+          <td>${p.dni}</td>
+          <td>${p.fechaNacimiento}</td>
+          <td>${p.telefono}</td>
+          <td>${p.email}</td>
+          <td>${p.direccion}</td>
+          <td>${p.alergias}</td>
+          <td>${p.numCitas}</td>
+          <td>
+            <a href="citas?accion=formulario&paciente=${p.idPaciente}">Nueva cita</a>
+            <form method="post" action="pacientes?accion=borrar" style="display:inline;">
+              <input type="hidden" name="id_paciente" value="${p.idPaciente}"/>
+              <input type="submit" value="borrar" onclick="return confirm('¿Seguro que deseas borrar este paciente? Se borrarán sus citas asociadas.');"/>
+            </form>
+          </td>
+        </tr>
+      </c:forEach>
     </table>
-    <%
-    } catch (Exception e) {
-    %>
-    <p class="error">Error al obtener el listado de pacientes: <%= e.getMessage() %></p>
-    <%
-    }
-    %>
     <p><a href="index.jsp">Volver al inicio</a></p>
   </body>
 </html>
